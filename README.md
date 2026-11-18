@@ -75,3 +75,8 @@ Sau khi đọc, cửa sổ nhập cho phép: xem trước từng câu (có công
 
 - `index.html`: trình soạn (giáo viên) và trình phát (học sinh). Trình phát được chép nguyên văn vào mỗi bài giảng xuất ra, nên file xuất ra tự chạy độc lập.
 - `js/docx-import.js`: đọc file Word – giải nén DOCX, đọc đối tượng OLE của MathType, chuyển MTEF/OMML sang LaTeX, tách câu hỏi và đáp án.
+
+---
+
+Tác giả: Trần Hoài Thanh · Zalo liên hệ: 0348296773
+Mọi tool AI dành cho giáo viên có tại: https://giaovienai.vercel.app/

@@ -111,6 +111,8 @@ window.MJ_URL='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg-full.js';
 body{margin:0;font-family:system-ui,"Segoe UI",Roboto,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
 .ed-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#0f172a;color:#fff;padding:10px 16px;position:sticky;top:0;z-index:20}
 .ed-brand{font-weight:800;font-size:16px;white-space:nowrap}
+.ed-foot{max-width:1400px;margin:0 auto;padding:4px 16px 24px;text-align:center;font-size:13px;color:#64748b;line-height:1.6}
+.ed-foot a{color:#2563eb}
 .ed-title{flex:1;min-width:180px;padding:8px 12px;border-radius:8px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:15px}
 .ed-actions{display:flex;gap:8px;flex-wrap:wrap}
 button{font-family:inherit}
@@ -642,7 +644,8 @@ $('#app').innerHTML=`
     <div class="row" style="margin-top:8px"><button class="b pri" data-act="parse">Xem bảng</button><button class="b" data-act="csv">⬇ Tải CSV</button></div>
     <div id="restable" style="margin-top:12px;overflow:auto"></div>
   </div>
-</div>`;
+</div>
+<footer class="ed-foot">Tác giả: <b>Trần Hoài Thanh</b> · Zalo liên hệ: <b>0348296773</b><br>Mọi tool AI dành cho giáo viên có tại: <a href="https://giaovienai.vercel.app/" target="_blank" rel="noopener">https://giaovienai.vercel.app/</a></footer>`;
 
 /* ---------- Danh sách mốc/câu hỏi ---------- */
 function qCard(i,j,q){

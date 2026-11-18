@@ -3,7 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
-const { DOMParser } = require(path.join(root, 'taodethi2026-main', 'node_modules', '@xmldom', 'xmldom'));
+/* xmldom chỉ để chạy test: ưu tiên bản cài bằng npm install, không có thì dùng bản trong thư mục tham khảo */
+let DOMParser;
+try { ({ DOMParser } = require('@xmldom/xmldom')); }
+catch (e) { ({ DOMParser } = require(path.join(root, 'taodethi2026-main', 'node_modules', '@xmldom', 'xmldom'))); }
 
 function loadImporter() {
   global.window = global;
