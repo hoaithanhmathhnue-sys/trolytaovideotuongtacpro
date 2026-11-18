@@ -2,13 +2,13 @@
 
 Web app giúp giáo viên biến một video thành **bài giảng tương tác**: video tự dừng ở các mốc thời gian, hiện câu hỏi, học sinh **trả lời đúng mới được xem tiếp**.
 
-Chỉ cần mở `index.html` bằng trình duyệt (Chrome/Edge/Safari) – không cần cài đặt, không cần máy chủ.
+Chỉ cần mở `index.html` bằng trình duyệt (Chrome/Edge/Safari) – không cần cài đặt, không cần máy chủ. Giữ thư mục `js/` nằm cạnh `index.html`.
 
 ## Cách dùng (giáo viên)
 
 1. **Chọn video**: file MP4 của bạn, hoặc dán link YouTube.
 2. Phát video đến đoạn cần dừng → bấm **＋ Thêm câu hỏi tại đây**.
-3. Soạn câu hỏi. Mỗi mốc có thể có nhiều **câu biến thể**; mỗi học sinh được bốc ngẫu nhiên một câu.
+3. Soạn câu hỏi, hoặc bấm **📄 Nhập câu hỏi từ Word (.docx)** (xem mục bên dưới). Mỗi mốc có thể có nhiều **câu biến thể**; mỗi học sinh được bốc ngẫu nhiên một câu.
 4. Bấm **▶ Xem thử như học sinh** để chạy thử.
 5. **Xuất bài giảng**:
    - **ZIP (HTML + video)**: giải nén rồi bấm đúp `baigiang.html`; chạy cả khi không có mạng.
@@ -17,6 +17,31 @@ Chỉ cần mở `index.html` bằng trình duyệt (Chrome/Edge/Safari) – kh�
 6. Học sinh làm xong sẽ có **mã kết quả** (`VT1:…`). Dán các mã vào tab **Bảng kết quả** để xem bảng và tải CSV.
 
 > Video MP4 xuất ra dạng `.mp4` thuần **không** giữ được tương tác (MP4 chỉ chứa hình và tiếng). Tương tác nằm trong file HTML đi kèm.
+
+## Nhập câu hỏi từ file Word
+
+File Word được đọc ngay trong trình duyệt, không gửi đi đâu.
+
+| Nội dung trong Word | Cách nhận diện |
+|---|---|
+| Câu hỏi | Dòng bắt đầu bằng `Câu 1.`, `Câu 2:`, `Bài 3)`… (gõ tay hoặc đánh số tự động) |
+| Đáp án | `A.` `B.` `C.` `D.` – mỗi đáp án một dòng, hoặc nhiều đáp án trên một dòng cách nhau bằng Tab, hoặc nằm trong bảng |
+| Đáp án đúng | **gạch chân**, **tô nền**, **tô màu chữ**, dấu `*` trước chữ cái, dòng `Chọn B` / `Đáp án: B` trong lời giải, hoặc **bảng đáp án** cuối đề (`1.A 2.B…` hoặc bảng 2 hàng số–chữ) |
+| Câu Đúng/Sai (a, b, c, d) | Tách thành từng ý với 2 lựa chọn Đúng/Sai; lấy đáp án từ dòng `a) Đúng b) Sai…` |
+| Câu trả lời ngắn | Không có A/B/C/D; đáp án lấy từ dòng `Đáp án: …` |
+| Lời giải | Phần sau `Lời giải`/`Hướng dẫn giải` → hiện cho học sinh khi trả lời đúng |
+| Công thức | **Equation của Word (OMML)** và **MathType** (MTEF v3/v5, gồm cả Equation Editor 3.0) → LaTeX, hiển thị bằng **MathJax** |
+| Hình ảnh | PNG/JPG/GIF/SVG được giữ lại (ảnh EMF/WMF không hiển thị được trên web nên bị bỏ qua) |
+
+Sau khi đọc, cửa sổ nhập cho phép: xem trước từng câu (có công thức), bấm vào đáp án để sửa đáp án đúng, bỏ chọn câu không dùng, chọn **số câu mỗi mốc** (lớn hơn 1 thì thành câu biến thể – mỗi học sinh bốc 1 câu), **chia đều các mốc** theo thời lượng video hoặc tự sửa thời gian từng mốc.
+
+> Lưu ý: file `.doc` cũ cần mở bằng Word rồi “Lưu thành” `.docx`. Luôn bấm **Xem thử như học sinh** để soát lại vài câu trước khi dùng.
+
+## Công thức toán
+
+- Viết công thức trong `$...$` (ví dụ `$\frac{1}{2}$`), hiển thị bằng MathJax ở trình soạn và bài giảng.
+- Câu thay số dùng được biến trong công thức: `$x^{n}$`, `$\frac{a}{b}$` với `n`, `a`, `b` là biến đã khai báo.
+- Bài giảng xuất ra có công thức sẽ kèm MathJax: **ZIP** có thư mục `mathjax/` (chạy không cần mạng), **1 file HTML** nhúng sẵn MathJax, **bản YouTube** tải MathJax từ mạng.
 
 ## Chống chép bài
 
@@ -48,4 +73,5 @@ Chỉ cần mở `index.html` bằng trình duyệt (Chrome/Edge/Safari) – kh�
 
 ## Cấu trúc
 
-Toàn bộ ứng dụng nằm trong **một file `index.html`**: trình soạn (giáo viên) và trình phát (học sinh). Trình phát được chép nguyên văn vào mỗi bài giảng xuất ra, nên file xuất ra tự chạy độc lập.
+- `index.html`: trình soạn (giáo viên) và trình phát (học sinh). Trình phát được chép nguyên văn vào mỗi bài giảng xuất ra, nên file xuất ra tự chạy độc lập.
+- `js/docx-import.js`: đọc file Word – giải nén DOCX, đọc đối tượng OLE của MathType, chuyển MTEF/OMML sang LaTeX, tách câu hỏi và đáp án.
