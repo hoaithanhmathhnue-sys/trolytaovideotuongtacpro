@@ -27,13 +27,13 @@ File Word được đọc ngay trong trình duyệt, không gửi đi đâu.
 | Câu hỏi | Dòng bắt đầu bằng `Câu 1.`, `Câu 2:`, `Bài 3)`… (gõ tay hoặc đánh số tự động) |
 | Đáp án | `A.` `B.` `C.` `D.` – mỗi đáp án một dòng, hoặc nhiều đáp án trên một dòng cách nhau bằng Tab, hoặc nằm trong bảng |
 | Đáp án đúng | **gạch chân**, **tô nền**, **tô màu chữ**, dấu `*` trước chữ cái, dòng `Chọn B` / `Đáp án: B` trong lời giải, hoặc **bảng đáp án** cuối đề (`1.A 2.B…` hoặc bảng 2 hàng số–chữ) |
-| Câu Đúng/Sai (a, b, c, d) | Tách thành từng ý với 2 lựa chọn Đúng/Sai; lấy đáp án từ dòng `a) Đúng b) Sai…` |
-| Câu trả lời ngắn | Không có A/B/C/D; đáp án lấy từ dòng `Đáp án: …` |
+| Câu Đúng/Sai (a, b, c, d) | Nhập thành **một câu Đúng/Sai nhóm**: học sinh chọn Đúng/Sai cho từng ý và phải đúng cả các ý mới xem tiếp. Ý đúng nhận theo **gạch chân / tô nền / tô màu** (cả 4 ý cùng gạch chân = cả 4 đúng), hoặc dòng `a) Đúng b) Sai…` trong lời giải; không nhận ra thì bấm chọn tay trong cửa sổ nhập |
+| Câu trả lời ngắn | Không có A/B/C/D; đáp án là dòng `A. 22,4` ngay dưới câu (mẫu TN MIX, trong phần “trả lời ngắn”) hoặc dòng `Đáp án: …` |
 | Lời giải | Phần sau `Lời giải`/`Hướng dẫn giải` → hiện cho học sinh khi trả lời đúng |
 | Công thức | **Equation của Word (OMML)** và **MathType** (MTEF v3/v5, gồm cả Equation Editor 3.0) → LaTeX, hiển thị bằng **MathJax** |
 | Hình ảnh | PNG/JPG/GIF/SVG được giữ lại (ảnh EMF/WMF không hiển thị được trên web nên bị bỏ qua) |
 
-Sau khi đọc, cửa sổ nhập cho phép: xem trước từng câu (có công thức), bấm vào đáp án để sửa đáp án đúng, bỏ chọn câu không dùng, chọn **số câu mỗi mốc** (lớn hơn 1 thì thành câu biến thể – mỗi học sinh bốc 1 câu), **chia đều các mốc** theo thời lượng video hoặc tự sửa thời gian từng mốc.
+Sau khi đọc, cửa sổ nhập cho phép: xem trước từng câu (có công thức), bấm vào đáp án để sửa đáp án đúng, bỏ chọn câu không dùng, chọn nhanh **theo Phần I/II/III**, chọn **số câu mỗi mốc** (lớn hơn 1 thì thành câu biến thể – mỗi học sinh bốc 1 câu), **chia đều các mốc** theo thời lượng video hoặc tự sửa thời gian từng mốc.
 
 > Lưu ý: file `.doc` cũ cần mở bằng Word rồi “Lưu thành” `.docx`. Luôn bấm **Xem thử như học sinh** để soát lại vài câu trước khi dùng.
 

@@ -675,7 +675,7 @@ function cleanText(s) {
 }
 const imgsIn = s => Array.from(s.matchAll(/[-]/g)).map(m => m[0].charCodeAt(0) - IMG0);
 
-function analyze(block, A, M) {
+function analyze(block, A, M, isShortPart) {
   /* block: chuỗi; A: định dạng từng ký tự; M: chuỗi đã che công thức */
   const solM = M.match(RE_SOL);
   const qEnd = solM ? solM.index : block.length;
@@ -722,9 +722,30 @@ function analyze(block, A, M) {
   const tfc = []; for (let L = 0; ; L++) { const t = t2.find(x => x.L === L && (!tfc.length || x.at > tfc[tfc.length - 1].at)); if (!t) break; tfc.push(t); }
   if (tfc.length >= 2) {
     res.stem = qT.slice(0, tfc[0].at);
-    res.tf = tfc.map((t, k) => ({ label: String.fromCharCode(97 + k), t: qT.slice(t.body, k + 1 < tfc.length ? tfc[k + 1].at : qT.length), ok: null }));
+    res.tf = tfc.map((t, k) => ({ label: String.fromCharCode(97 + k), t: qT.slice(t.body, k + 1 < tfc.length ? tfc[k + 1].at : qT.length), ok: null, s: t.body, e: k + 1 < tfc.length ? tfc[k + 1].at : qT.length, at: t.at }));
+    /* ý đúng = ý được gạch chân / tô nền / tô màu / in đậm (cùng quy ước với trộn đề).
+       Cả 4 ý cùng gạch chân hoặc tô nền = cả 4 đúng; cả 4 chỉ cùng màu chữ / in đậm = trang trí, bỏ qua. */
+    for (const [bit, name] of [[FMT.U, 'gạch chân'], [FMT.H, 'tô nền'], [FMT.C, 'tô màu'], [FMT.B, 'in đậm']]) {
+      const marked = res.tf.map(st => {
+        if (A[st.at] & bit) return true;
+        let tot = 0, on = 0; for (let i = st.s; i < st.e; i++) if (!/\s/.test(block[i])) { tot++; if (A[i] & bit) on++; }
+        return tot > 0 && on / tot >= 0.6;
+      });
+      const n = marked.filter(Boolean).length;
+      if (!n || (n === marked.length && (bit === FMT.C || bit === FMT.B))) continue;
+      res.tf.forEach((st, k) => { st.ok = marked[k]; });
+      res.tfHow = name; break;
+    }
+    if (res.tfHow) return res;
     res.tf.forEach(st => { const r = new RegExp('(?:^|[\\s,;(])' + st.label + '[ \\t]*\\)?[ \\t]*[:\\-–]?[ \\t]*(Đúng|Sai|Đ|S)\\b', 'u'); const mm = sol.match(r); if (mm) st.ok = /^Đ/.test(mm[1]); });
     return res;
+  }
+  /* --- câu trả lời ngắn theo mẫu TN MIX: dòng cuối "A. đáp án" --- */
+  if (isShortPart) {
+    const lines = qT.split('\n');
+    let li = lines.length - 1; while (li >= 0 && !lines[li].trim()) li--;
+    const sm = li >= 0 ? lines[li].match(/^[ \t]*\*?A[ \t]*[.:)][ \t]*(\S.*?)[ \t]*$/u) : null;
+    if (sm) { res.shortAns = cleanText(sm[1]); res.stem = lines.slice(0, li).join('\n'); return res; }
   }
   res.stem = qT;
   return res;
@@ -756,7 +777,7 @@ function splitQuestions(parsed) {
     if (mk.type === 'key') { inKey = true; keyText += T.slice(mk.body, end) + '\n'; return; }
     const blk = T.slice(mk.body, end), am = A.slice(mk.body, end), mm = M.slice(mk.body, end);
     if (inKey) { (sols[mk.num] = sols[mk.num] || []).push(blk); keyText += blk + '\n'; return; }
-    const r = analyze(blk, am, mm);
+    const r = analyze(blk, am, mm, /trả\s*lời\s*ngắn/iu.test(part));
     questions.push({ num: mk.num, part, partNo, r, raw: blk });
   });
   const key = parseKey(keyText);
@@ -766,7 +787,7 @@ function splitQuestions(parsed) {
     const solExtra = (sols[q.num] && questions.filter(x => x.num === q.num).length === 1) ? sols[q.num].join('\n') : '';
     const solText = (r.sol + '\n' + solExtra);
     const explain = cleanText(solText.replace(/^[ \t]*(?:Lời giải|LỜI GIẢI|Hướng dẫn(?: giải)?|HƯỚNG DẪN(?: GIẢI)?)[ \t]*[:.]?[ \t]*/mu, ''));
-    const images = imgsIn(r.stem).concat(r.options ? r.options.flatMap(o => imgsIn(o.t)) : []);
+    const images = imgsIn(r.stem).concat(r.options ? r.options.flatMap(o => imgsIn(o.t)) : [], r.tf ? r.tf.flatMap(st => imgsIn(st.t)) : []);
     if (r.options && r.options.some(o => imgsIn(o.t).length)) warn.push('Có hình trong đáp án – hình được chuyển lên phần câu hỏi.');
     if (/⟨công thức lỗi⟩/.test(q.raw)) warn.push('Có công thức MathType không đọc được, hãy sửa tay.');
     const base = { num: q.num, part: q.part, images, warnings: warn };
@@ -778,17 +799,22 @@ function splitQuestions(parsed) {
       out.push(Object.assign(base, { kind: 'mcq', text: cleanText(r.stem), options: r.options.map((o, k) => ({ text: cleanText(o.t), ok: k === correct })), how, explain }));
     } else if (r.tf) {
       const stem = cleanText(r.stem);
-      r.tf.forEach(st => out.push(Object.assign({}, base, { num: q.num + st.label, kind: 'mcq', warnings: st.ok == null ? warn.concat('Câu Đúng/Sai: hãy bấm chọn Đúng hoặc Sai.') : warn.slice(),
-        text: (stem ? stem + '\n' : '') + st.label + ') ' + cleanText(st.t), options: [{ text: 'Đúng', ok: st.ok === true }, { text: 'Sai', ok: st.ok === false }], how: st.ok == null ? '' : 'lời giải', explain })));
+      const unk = r.tf.filter(st => st.ok == null).map(st => st.label);
+      if (r.tf.some(st => imgsIn(st.t).length)) warn.push('Có hình trong ý a–d – hình được chuyển lên phần câu hỏi.');
+      if (unk.length) warn.push('Câu Đúng/Sai: ý ' + unk.join(', ') + ' chưa xác định – hãy bấm chọn Đúng hoặc Sai.');
+      out.push(Object.assign(base, { kind: 'tf', text: stem, options: [], answer: '', tol: 0,
+        statements: r.tf.map(st => ({ text: cleanText(st.t), ok: st.ok === true })),
+        how: r.tfHow || (unk.length < r.tf.length ? 'lời giải' : ''), explain }));
     } else {
       let ans = '';
       const am = solText.match(/(?:Đáp án|ĐÁP ÁN|Đáp số|ĐS|Trả lời|Kết quả)[ \t]*[:.]?[ \t]*([^\n]+)/u);
-      if (am) ans = cleanText(am[1]).replace(/[.;]$/, '');
+      if (r.shortAns) ans = r.shortAns;
+      else if (am) ans = cleanText(am[1]).replace(/[.;]$/, '');
       if (/^[.…_\s]*$/.test(ans)) ans = '';
       const mm = ans.match(/^\$([^$]+)\$$/); if (mm && /^[-+]?[\d.,]+$/.test(mm[1].trim())) ans = mm[1].trim();
       if (!ans) warn.push('Câu trả lời ngắn chưa có đáp án – hãy nhập đáp án.');
       const ex2 = explain.split('\n').filter(l => !/^(?:Đáp án|ĐÁP ÁN|Đáp số|ĐS|Trả lời|Kết quả)[ \t]*[:.]?/u.test(l)).join('\n').trim();
-      out.push(Object.assign(base, { kind: 'short', text: cleanText(r.stem), options: [], answer: ans, tol: 0, how: ans ? 'lời giải' : '', explain: ex2 }));
+      out.push(Object.assign(base, { kind: 'short', text: cleanText(r.stem), options: [], answer: ans, tol: 0, how: ans ? (r.shortAns ? 'dòng A.' : 'lời giải') : '', explain: ex2 }));
     }
   }
   return out;
