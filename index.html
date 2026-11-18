@@ -518,8 +518,10 @@ function PlayerModule(){
     }
     function showStart(){
       const askName=S.askName!==false,askCls=S.askClass!==false;
+      const fileYt=typeof location!=='undefined'&&location.protocol==='file:'&&lesson.video&&lesson.video.type==='youtube';
       setLayer('<div class="vp-quiz"><div class="vp-card"><h2>'+esc(lesson.title||'Bài giảng tương tác')+'</h2>'
         +'<p>Xem video và trả lời '+(cps.length?cps.length+' câu hỏi':'các câu hỏi')+'. Trả lời đúng mới được xem tiếp.</p>'
+        +(fileYt?'<p style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:8px 10px;color:#78350f;font-size:14px">⚠ Bài này dùng video YouTube nên <b>không mở được bằng cách bấm đúp file</b> (YouTube báo “Lỗi 153”). Hãy bấm đúp <b>MO-BAI-GIANG.bat</b> trong thư mục bài giảng (Windows), hoặc mở bài qua đường link https của thầy/cô.</p>':'')
         +(askName?'<label>Họ và tên</label><input type="text" class="vp-name" autocomplete="off">':'')
         +(askCls?'<label>Lớp</label><input type="text" class="vp-cls" autocomplete="off">':'')
         +'<div style="margin-top:12px"><button class="vp-btn2 vp-go" disabled>Đang tải video…</button></div><div class="vp-fb"><div class="bad vp-msg"></div></div></div></div>');
@@ -615,9 +617,10 @@ $('#app').innerHTML=`
       <div class="row">
         <button class="b pri" data-act="exportzip">⬇ Tải ZIP (HTML + video)</button>
         <button class="b" data-act="exportone">⬇ 1 file HTML (nhúng video)</button>
+        <button class="b" data-act="exportytzip">⬇ ZIP YouTube (có file mở nhanh)</button>
         <button class="b" data-act="exportyt">⬇ HTML (video YouTube)</button>
       </div>
-      <p class="hint"><b>ZIP</b>: giải nén rồi bấm đúp <code>baigiang.html</code> – chạy cả khi không có mạng. <b>1 file HTML</b>: tiện gửi nhưng chỉ nên dùng cho video ngắn (dưới ~50 MB). <b>YouTube</b>: phải mở qua địa chỉ https (ví dụ đưa lên GitHub Pages), mở trực tiếp từ máy thường bị YouTube chặn.</p>
+      <p class="hint"><b>ZIP</b>: giải nén rồi bấm đúp <code>baigiang.html</code> – chạy cả khi không có mạng. <b>1 file HTML</b>: tiện gửi nhưng chỉ nên dùng cho video ngắn (dưới ~50 MB). <b>YouTube</b>: không mở bằng cách bấm đúp file HTML được (YouTube báo “Lỗi 153”). Dùng <b>ZIP YouTube</b>: giải nén rồi bấm đúp <code>MO-BAI-GIANG.bat</code> (Windows); gửi cho học sinh thì đưa lên địa chỉ https như GitHub Pages.</p>
       <ul class="problems" id="problems"></ul>
     </div>
   </div>
@@ -800,6 +803,40 @@ function mjTags(mode,src){
   if(mode==='cdn')return cfg+'<script src="'+MJ_URL+'" async><\/script>';
   return '';
 }
+/* launcher:start */
+/* Bản YouTube không chạy khi mở thẳng file từ ổ đĩa (YouTube báo lỗi 153 vì trang không có địa chỉ http).
+   File mở nhanh: chạy máy chủ nhỏ tại http://localhost rồi mở trình duyệt. Chỉ dùng ASCII vì PowerShell 5 đọc sai UTF-8 không BOM. */
+const LAUNCHER_PS1=String.raw`param([int]$Port=8123,[switch]$NoBrowser)
+$ErrorActionPreference='Stop'
+$root=[System.IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\')+'\'
+$types=@{'.html'='text/html; charset=utf-8';'.js'='text/javascript';'.css'='text/css';'.json'='application/json';'.mp4'='video/mp4';'.webm'='video/webm';'.png'='image/png';'.jpg'='image/jpeg';'.svg'='image/svg+xml'}
+$l=New-Object System.Net.HttpListener
+$l.Prefixes.Add("http://localhost:$Port/")
+try{$l.Start()}catch{Write-Host "Khong mo duoc cong $Port. Co the bai giang dang chay o cua so khac. Hay dong cua so do roi thu lai."; Start-Sleep -Seconds 10; exit 1}
+$url="http://localhost:$Port/baigiang.html"
+if(-not $NoBrowser){Start-Process $url}
+Write-Host "Bai giang dang chay tai: $url"
+Write-Host "Giu cua so nay mo trong luc xem bai. Dong cua so de dung."
+while($l.IsListening){
+  $c=$l.GetContext()
+  try{
+    $rel=[uri]::UnescapeDataString($c.Request.Url.AbsolutePath).TrimStart('/').Replace('/','\')
+    if($rel -eq ''){$rel='baigiang.html'}
+    $f=[System.IO.Path]::GetFullPath((Join-Path $root $rel))
+    if($f.StartsWith($root,[System.StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $f -PathType Leaf)){
+      $b=[System.IO.File]::ReadAllBytes($f)
+      $ct=$types[[System.IO.Path]::GetExtension($f).ToLower()]
+      if(-not $ct){$ct='application/octet-stream'}
+      $c.Response.ContentType=$ct
+      $c.Response.ContentLength64=$b.Length
+      $c.Response.OutputStream.Write($b,0,$b.Length)
+    }else{$c.Response.StatusCode=404}
+  }catch{try{$c.Response.StatusCode=404}catch{}}
+  finally{$c.Response.Close()}
+}
+`.replace(/\r?\n/g,'\r\n');
+const LAUNCHER_BAT=['@echo off','cd /d "%~dp0"','powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0chay-bai-giang.ps1"','pause',''].join('\r\n');
+/* launcher:end */
 function buildHtml(lesson,videoUrlLiteral,mjHtml){
   const css=$('#player-css').textContent;
   const mod=PlayerModule.toString();
@@ -844,6 +881,19 @@ async function buildZip(){
   const readme='Cách dùng: giải nén cả thư mục, rồi bấm đúp vào baigiang.html (mở bằng Chrome/Edge/Safari). Giữ file video và thư mục mathjax cạnh file HTML.\r\n';
   return makeZip([{name:'baigiang.html',data:new TextEncoder().encode(html)},{name:vname,data:videoFile},{name:'HUONG_DAN.txt',data:new TextEncoder().encode(readme)}].concat(extra));
 }
+async function buildYtZip(){
+  const L=lessonObj(),extra=[];let mj='';buildYtZip.warn='';
+  if(lessonUsesMath(L)){
+    const src=await getMathJaxSource();
+    if(src){extra.push({name:'mathjax/tex-svg-full.js',data:new TextEncoder().encode(src)});mj=mjTags('file');}
+    else{mj=mjTags('cdn');buildYtZip.warn='Không tải được MathJax nên bài giảng cần có mạng để hiện công thức.';}
+  }
+  const enc=s=>new TextEncoder().encode(s);
+  const readme='Cach dung (Windows): giai nen ca thu muc, bam dup MO-BAI-GIANG.bat. Trinh duyet se mo bai giang. Giu cua so den mo trong luc xem.\r\n'
+    +'Khong bam dup truc tiep baigiang.html: YouTube se bao Loi 153 vi trang mo tu o dia khong co dia chi http.\r\n'
+    +'May Mac/Linux hoac gui cho hoc sinh: dua ca thu muc len mot trang web https (GitHub Pages, Netlify, Cloudflare Pages...) roi gui duong link.\r\n';
+  return makeZip([{name:'baigiang.html',data:enc(buildHtml(L,'""',mj))},{name:'MO-BAI-GIANG.bat',data:enc(LAUNCHER_BAT)},{name:'chay-bai-giang.ps1',data:enc(LAUNCHER_PS1)},{name:'HUONG_DAN.txt',data:enc(readme)}].concat(extra));
+}
 async function doExport(kind){
   const probs=validate();showProblems(probs);
   if(probs.length){toast('Còn '+probs.length+' điểm cần sửa trước khi xuất.',3500);return;}
@@ -860,6 +910,9 @@ async function doExport(kind){
       let mj='',warn='';
       if(lessonUsesMath(L)){const src=await getMathJaxSource();if(src)mj=mjTags('inline',src);else{mj=mjTags('cdn');warn=' Không tải được MathJax nên bài giảng cần có mạng để hiện công thức.';}}
       download(new Blob([buildHtml(L,JSON.stringify(url),mj)],{type:'text/html'}),slug(project.title)+'.html');toast('Đã tạo file HTML ✓'+warn,warn?6000:2600);
+    }else if(kind==='ytzip'){
+      if(project.video.type!=='youtube'){toast('Hãy dán link YouTube trước.');return;}
+      toast('Đang tạo ZIP…',60000);download(await buildYtZip(),slug(project.title)+'-youtube.zip');toast('Đã tạo ZIP ✓ Giải nén rồi bấm đúp MO-BAI-GIANG.bat.'+(buildYtZip.warn?' '+buildYtZip.warn:''),6000);
     }else{
       if(project.video.type!=='youtube'){toast('Hãy dán link YouTube trước.');return;}
       const L=lessonObj();download(new Blob([buildHtml(L,'""',lessonUsesMath(L)?mjTags('cdn'):'')],{type:'text/html'}),slug(project.title)+'-youtube.html');toast('Đã tạo file HTML ✓');
@@ -1099,6 +1152,7 @@ document.addEventListener('click',async e=>{
     case 'exportzip':doExport('zip');break;
     case 'exportone':doExport('one');break;
     case 'exportyt':doExport('yt');break;
+    case 'exportytzip':doExport('ytzip');break;
     case 'parse':parseCodes();break;
     case 'csv':csv();break;
   }
@@ -1120,7 +1174,7 @@ $('#fproj').addEventListener('change',async e=>{
 /* ---------- Khởi động ---------- */
 try{const s=localStorage.getItem(KEY);if(s){const p=JSON.parse(s);if(p&&Array.isArray(p.checkpoints)){project=Object.assign(newProject(),p);project.settings=Object.assign(newProject().settings,p.settings||{});}}}catch(e){}
 rerenderAll();
-window.__app={get project(){return project;},set project(p){project=p;rerenderAll();},setVideoFile:f=>{videoFile=f;videoUrl=URL.createObjectURL(f);project.video={type:'file',name:f.name};loadVideo();},buildZip,lessonObj,validate,openPreview,closePreview,buildHtml,P,importDocxFile,addImported,get imp(){return imp;},lessonUsesMath};
+window.__app={get project(){return project;},set project(p){project=p;rerenderAll();},setVideoFile:f=>{videoFile=f;videoUrl=URL.createObjectURL(f);project.video={type:'file',name:f.name};loadVideo();},buildZip,buildYtZip,lessonObj,validate,openPreview,closePreview,buildHtml,P,importDocxFile,addImported,get imp(){return imp;},lessonUsesMath};
 })();
 </script>
 </body>

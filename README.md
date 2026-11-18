@@ -13,7 +13,7 @@ Chỉ cần mở `index.html` bằng trình duyệt (Chrome/Edge/Safari) – kh�
 5. **Xuất bài giảng**:
    - **ZIP (HTML + video)**: giải nén rồi bấm đúp `baigiang.html`; chạy cả khi không có mạng.
    - **1 file HTML (nhúng video)**: tiện gửi, chỉ nên dùng cho video ngắn (dưới ~50 MB).
-   - **HTML (YouTube)**: phải mở qua địa chỉ `https://` (ví dụ đưa lên GitHub Pages).
+- **ZIP YouTube (có file mở nhanh)** / **HTML (YouTube)**: YouTube báo “Lỗi 153” nếu bấm đúp file HTML mở từ ổ đĩa. Với ZIP YouTube: giải nén rồi bấm đúp `MO-BAI-GIANG.bat` (Windows; chạy một máy chủ nhỏ tại `http://localhost` và mở trình duyệt, giữ cửa sổ đen mở trong lúc xem). Gửi cho học sinh thì đưa cả thư mục lên địa chỉ `https://` (GitHub Pages, Netlify…).
 6. Học sinh làm xong sẽ có **mã kết quả** (`VT1:…`). Dán các mã vào tab **Bảng kết quả** để xem bảng và tải CSV.
 
 > Video MP4 xuất ra dạng `.mp4` thuần **không** giữ được tương tác (MP4 chỉ chứa hình và tiếng). Tương tác nằm trong file HTML đi kèm.
@@ -63,7 +63,7 @@ Sau khi đọc, cửa sổ nhập cho phép: xem trước từng câu (có công
 
 - **Chấm điểm phía trình duyệt**: đáp án nằm trong mã của file HTML nên học sinh biết xem mã nguồn (F12) vẫn tìm được. Mức này đủ để bắt học sinh xem kỹ video; nếu cần chấm điểm nghiêm túc thì phải chấm ở máy chủ (ví dụ Firebase).
 - **Mã kết quả** do trình duyệt học sinh tạo, chưa có chữ ký chống làm giả.
-- **YouTube** không nhúng được khi mở file trực tiếp từ ổ đĩa (`file://`) – cần mở qua https.
+- **YouTube** không nhúng được khi mở file trực tiếp từ ổ đĩa (`file://`, lỗi 153) – dùng `MO-BAI-GIANG.bat` trong ZIP YouTube hoặc mở qua https.
 - **Máy chủ phải hỗ trợ tải theo đoạn (HTTP Range)** nếu phát file MP4 qua web để tua được (GitHub Pages, Netlify, Firebase Hosting đều hỗ trợ).
 - Học sinh không tua vượt qua câu hỏi chưa trả lời được (đã kiểm thử), nhưng người dùng rành kỹ thuật vẫn có thể bỏ qua bằng công cụ lập trình.
 

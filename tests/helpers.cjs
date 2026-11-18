@@ -34,4 +34,12 @@ function loadTfLogic() {
   return new Function(m[1] + ';return {tfProblems,partsOf};')();
 }
 
-module.exports = { loadImporter, importFixture, loadPlayer, loadTfLogic };
+/* Trích khối launcher (file mở nhanh bản YouTube) giữa /* launcher:start *\/ và /* launcher:end *\/ */
+function loadLauncher() {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const m = html.match(/\/\* launcher:start \*\/([\s\S]*?)\/\* launcher:end \*\//);
+  if (!m) throw new Error('Không thấy khối launcher');
+  return new Function(m[1] + ';return {LAUNCHER_PS1,LAUNCHER_BAT};')();
+}
+
+module.exports = { loadImporter, importFixture, loadPlayer, loadTfLogic, loadLauncher };
